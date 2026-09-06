@@ -39,10 +39,11 @@ services:
     container_name: valkey-prod
     ports:
       - "6379:6379"
+    command: valkey-server --requirepass ${VALKEY_PASSWORD}
     volumes:
       - valkey_prod_data:/data
     healthcheck:
-      test: ["CMD", "valkey-cli", "ping"]
+      test: ["CMD", "valkey-cli", "-a", "${VALKEY_PASSWORD}", "ping"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -84,6 +85,10 @@ services:
       - LOGIN_URL_BASE=${LOGIN_URL_BASE}
       - ASSESSMENT_QUALIFICATION_CHUNK_SIZE=${ASSESSMENT_QUALIFICATION_CHUNK_SIZE:-5}
       - ASSESSMENT_MAX_QUESTIONS_NUMBER=${ASSESSMENT_MAX_QUESTIONS_NUMBER:-5}
+      - VALKEY_HOST=${VALKEY_HOST:-valkey-prod}
+      - VALKEY_PORT=${VALKEY_PORT:-6379}
+      - VALKEY_PASSWORD=${VALKEY_PASSWORD}
+      - VALKEY_DB=${VALKEY_DB:-0}
     ports:
       - "8000:8000"
     depends_on:

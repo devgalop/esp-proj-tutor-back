@@ -28,11 +28,12 @@ services:
     container_name: valkey
     ports:
       - "6379:6379"
+    command: valkey-server --requirepass ${VALKEY_PASSWORD}
     volumes:
       - valkey_data:/data
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "valkey-cli", "ping"]
+      test: ["CMD", "valkey-cli", "-a", "${VALKEY_PASSWORD}", "ping"]
       interval: 10s
       timeout: 5s
       retries: 5
