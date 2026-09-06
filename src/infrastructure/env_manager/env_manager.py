@@ -32,6 +32,10 @@ class EnvironmentVariablesConstants:
         "AWS_SQS_QUALIFICATION_QUEUE_URL",
         "AWS_SQS_CLASSIFICATION_QUEUE_URL",
         "OPENCODE_DEFAULT_MODEL",
+        "VALKEY_HOST",
+        "VALKEY_PORT",
+        "VALKEY_PASSWORD",
+        "VALKEY_DB",
     ]
 
     JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY", "")
@@ -83,6 +87,11 @@ class EnvironmentVariablesConstants:
     AWS_ENDPOINT_URL = os.getenv("AWS_ENDPOINT_URL", "")
     AWS_SQS_QUALIFICATION_QUEUE_URL = os.getenv("AWS_SQS_QUALIFICATION_QUEUE_URL", "")
     AWS_SQS_CLASSIFICATION_QUEUE_URL = os.getenv("AWS_SQS_CLASSIFICATION_QUEUE_URL", "")
+
+    VALKEY_HOST = os.getenv("VALKEY_HOST", "")
+    VALKEY_PORT = os.getenv("VALKEY_PORT", "")
+    VALKEY_PASSWORD = os.getenv("VALKEY_PASSWORD", "")
+    VALKEY_DB = os.getenv("VALKEY_DB", "")
 
     @staticmethod
     def validate_mandatory_env_vars():
