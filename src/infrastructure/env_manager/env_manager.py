@@ -93,6 +93,11 @@ class EnvironmentVariablesConstants:
     VALKEY_PASSWORD = os.getenv("VALKEY_PASSWORD", "")
     VALKEY_DB = os.getenv("VALKEY_DB", "")
 
+    USER_ACCESS_TRY_LIMIT = os.getenv("USER_ACCESS_TRY_LIMIT", "3")
+    USER_ACCESS_LOCK_TIME_SECONDS = os.getenv("USER_ACCESS_LOCK_TIME_SECONDS", "600")
+    USER_ACCESS_LOCK_LIMIT = os.getenv("USER_ACCESS_LOCK_LIMIT", "3")
+    USER_OTP_EXPIRED_TIME_SECONDS = os.getenv("USER_OTP_EXPIRED_TIME_SECONDS", "120")
+
     @staticmethod
     def validate_mandatory_env_vars():
         for var in EnvironmentVariablesConstants._mandatory_env_vars:

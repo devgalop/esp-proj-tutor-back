@@ -34,6 +34,9 @@ from src.features.user_management.get_connected_users.get_connected_users_endpoi
 from src.features.user_management.update_user_profile.update_user_profile_endpoint import (
     router as update_user_profile_router,
 )
+from src.features.user_management.confirm_otp.confirm_otp_endpoint import (
+    router as confirm_otp_router,
+)
 
 router = APIRouter()
 router.include_router(create_user_router)
@@ -48,3 +51,4 @@ router.include_router(create_user_from_admin_router)
 router.include_router(update_user_status_router)
 router.include_router(get_connected_users_router)
 router.include_router(update_user_profile_router)
+router.include_router(confirm_otp_router)

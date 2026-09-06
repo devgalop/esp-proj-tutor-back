@@ -3,7 +3,7 @@ from pydantic import BaseModel
 
 class LoginResponse(BaseModel):
     is_successful: bool
-    token: str
-    expiration_time: float
-    refresh_token: str = ""
     user_id: str | None
+    is_temporarily_blocked: bool = False
+    blocked_until: float = 0
+    is_definitively_blocked: bool = False
