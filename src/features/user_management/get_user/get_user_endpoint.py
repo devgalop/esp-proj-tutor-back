@@ -7,6 +7,7 @@ from src.features.user_management.get_user.get_user_response import GetUserRespo
 from src.features.user_management.shared.dependencies import get_get_user_handler
 from src.features.user_management.shared.require_roles import require_roles
 from src.features.user_management.shared.token_generator import TokenData
+from src.features.user_management.shared.validate_user import UserIdentityValidator
 
 router = APIRouter()
 
@@ -56,8 +57,8 @@ router = APIRouter()
 async def get_user(
     user_id: str,
     handler: Annotated[GetUserHandler, Depends(get_get_user_handler)],
-    _: Annotated[
-        TokenData, Depends(require_roles(["admin", "teacher", "student", "user"]))
+    token_data: Annotated[
+        TokenData, Depends(require_roles(["admin", "teacher", "student"]))
     ],
 ) -> GetUserResponse:
     """Endpoint for retrieving user information by user ID.
@@ -65,11 +66,12 @@ async def get_user(
     Args:
         user_id (str): The ID of the user to retrieve.
         handler (Annotated[GetUserHandler, Depends]): The handler responsible for processing the user retrieval.
-        _: Annotated[TokenData, Depends]: The authenticated user data.
+        token_data: Annotated[TokenData, Depends]: The authenticated user data.
     Returns:
         GetUserResponse: The response containing the user details if found, otherwise a message indicating that the user was not found.
     """
     request = GetUserRequest(user_id=user_id)
+    UserIdentityValidator.is_valid_user(token_data, user_id)
     response = await handler.handle(request)
     if not response.is_success:
         raise HTTPException(status_code=404, detail=response.model_dump())

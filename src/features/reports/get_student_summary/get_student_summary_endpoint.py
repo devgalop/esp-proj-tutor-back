@@ -14,6 +14,7 @@ from src.features.reports.get_student_summary.get_student_summary_response impor
 from src.features.reports.shared.dependencies import get_get_student_summary_handler
 from src.features.user_management.shared.require_roles import require_roles
 from src.features.user_management.shared.token_generator import TokenData
+from src.features.user_management.shared.validate_user import UserIdentityValidator
 
 router = APIRouter()
 
@@ -73,13 +74,16 @@ async def get_student_summary(
     handler: Annotated[
         GetStudentSummaryHandler, Depends(get_get_student_summary_handler)
     ],
-    _: Annotated[TokenData, Depends(require_roles(["admin", "teacher", "student"]))],
+    token_data: Annotated[
+        TokenData, Depends(require_roles(["admin", "teacher", "student"]))
+    ],
 ) -> GetStudentSummaryResponse:
     """Handle the request to get the student summary by user ID.
 
     Args:
         id (str): The ID of the user to retrieve the student summary for.
         handler (GetStudentSummaryHandler): The handler responsible for processing the request.
+        token_data (TokenData): The token data of the authenticated user.
 
     Returns:
         GetStudentSummaryResponse: The student summary corresponding to the given user ID.
@@ -87,6 +91,11 @@ async def get_student_summary(
     if not id:
         raise HTTPException(status_code=400, detail="User ID is required")
     request = GetStudentSummaryRequest(student_id=id)
+    UserIdentityValidator.is_valid_user(
+        user_logged=token_data,
+        user_id_to_validate=id,
+        blank_list_roles=["admin", "teacher"],
+    )
     response = await handler.handle(request)
     if not response.is_success:
         raise HTTPException(status_code=404, detail=response.message)

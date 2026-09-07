@@ -114,7 +114,11 @@ class RefreshTokenHandler:
         await self.refresh_token_repository.revoke_tokens_by_user_id(record.user_id)
 
         token_response = self.token_generator.generate_token(
-            TokenRequest(user_name=user_found.username, role=user_found.role.value)
+            TokenRequest(
+                user_id=user_found.id,
+                user_name=user_found.username,
+                role=user_found.role.value,
+            )
         )
 
         new_refresh_token = self.token_generator.generate_random_token()

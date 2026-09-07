@@ -15,6 +15,7 @@ from src.features.assessments.shared.dependencies import (
 )
 from src.features.user_management.shared.require_roles import require_roles
 from src.features.user_management.shared.token_generator import TokenData
+from src.features.user_management.shared.validate_user import UserIdentityValidator
 
 router = APIRouter()
 
@@ -67,7 +68,9 @@ async def get_assessments_summary(
         GetAssessmentsSummaryHandler,
         Depends(get_get_assessments_summary_handler),
     ],
-    _: Annotated[TokenData, Depends(require_roles(["admin", "teacher", "student"]))],
+    token_data: Annotated[
+        TokenData, Depends(require_roles(["admin", "teacher", "student"]))
+    ],
     student_id: str,
     page: int = 0,
     page_size: int = 10,
@@ -75,6 +78,11 @@ async def get_assessments_summary(
     try:
         request = GetAssessmentsSummaryRequest(
             student_id=student_id, page=page, page_size=page_size
+        )
+        UserIdentityValidator.is_valid_user(
+            user_logged=token_data,
+            user_id_to_validate=student_id,
+            blank_list_roles=["admin", "teacher"],
         )
         response = await handler.handle(request)
         if not response.is_success:

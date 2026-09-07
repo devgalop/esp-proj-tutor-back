@@ -6,11 +6,15 @@ from src.features.user_management.shared.dependencies import (
 )
 from src.features.user_management.shared.require_roles import require_roles
 from src.features.user_management.shared.token_generator import TokenData
+from src.features.user_management.shared.validate_user import UserIdentityValidator
 from src.features.user_management.update_user_profile.update_user_profile_handler import (
     UpdateUserProfileHandler,
 )
 from src.features.user_management.update_user_profile.update_user_profile_request import (
     UpdateUserProfileRequest,
+)
+from src.features.user_management.update_user_profile.update_user_profile_response import (
+    UpdateUserProfileResponse,
 )
 
 router = APIRouter()
@@ -71,18 +75,23 @@ async def update_user_profile(
     handler: Annotated[
         UpdateUserProfileHandler, Depends(get_update_user_profile_handler)
     ],
-    _: Annotated[TokenData, Depends(require_roles(["admin", "teacher", "student"]))],
-):
+    token_data: Annotated[
+        TokenData, Depends(require_roles(["admin", "teacher", "student"]))
+    ],
+) -> UpdateUserProfileResponse:
     """Endpoint for updating a user's profile.
 
     Args:
         request (UpdateUserProfileRequest): The user data for updating the profile.
         handler (Annotated[UpdateUserProfileHandler, Depends]): The handler responsible for processing the user profile update.
-        _: Annotated[TokenData, Depends]: The token data containing user information and roles.
+        token_data: Annotated[TokenData, Depends]: The token data containing user information and roles.
 
     Returns:
         UpdateUserProfileResponse: The response containing the message about the user profile update result.
     """
+    UserIdentityValidator.is_valid_user(
+        user_logged=token_data, user_id_to_validate=request.user_id
+    )
     response = await handler.handle(request)
     if not response.is_success:
         raise HTTPException(status_code=400, detail={"message": response.model_dump()})

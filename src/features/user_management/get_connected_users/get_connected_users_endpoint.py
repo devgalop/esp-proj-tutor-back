@@ -81,7 +81,7 @@ async def get_connected_users(
     handler: Annotated[
         GetConnectedUsersHandler, Depends(get_get_connected_users_handler)
     ],
-    _: Annotated[TokenData, Depends(require_roles(["admin", "teacher", "student"]))],
+    _: Annotated[TokenData, Depends(require_roles(["admin", "teacher"]))],
 ) -> GetConnectedUsersResponse:
     response = await handler.handle()
     if not response.is_success:

@@ -11,6 +11,7 @@ from src.features.reports.get_student_progress.get_student_progress_request impo
 from src.features.reports.shared.dependencies import get_get_student_progress_handler
 from src.features.user_management.shared.require_roles import require_roles
 from src.features.user_management.shared.token_generator import TokenData
+from src.features.user_management.shared.validate_user import UserIdentityValidator
 
 router = APIRouter()
 
@@ -74,14 +75,16 @@ async def get_student_progress(
     handler: Annotated[
         GetStudentProgressHandler, Depends(get_get_student_progress_handler)
     ],
-    _: Annotated[TokenData, Depends(require_roles(["admin", "teacher", "student"]))],
+    token_data: Annotated[
+        TokenData, Depends(require_roles(["admin", "teacher", "student"]))
+    ],
 ):
     """Endpoint to retrieve the student progress for a given user ID.
 
     Args:
         id (str): The user ID of the student.
         handler (GetStudentProgressHandler): The handler to process the request.
-        _ (TokenData): The token data for authentication and authorization.
+        token_data (TokenData): The token data for authentication and authorization.
 
     Returns:
         GetStudentProgressResponse: The response containing the student progress.
@@ -90,6 +93,11 @@ async def get_student_progress(
         raise HTTPException(status_code=400, detail="User ID is required.")
     try:
         request = GetStudentProgressRequest(student_id=id)
+        UserIdentityValidator.is_valid_user(
+            user_logged=token_data,
+            user_id_to_validate=id,
+            blank_list_roles=["admin", "teacher"],
+        )
         response = await handler.handle(request)
 
         if not response.is_success:

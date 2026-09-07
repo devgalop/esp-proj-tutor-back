@@ -5,6 +5,7 @@ USERNAME_PATTERN = r"\w+$"
 
 
 class RefreshTokenRequest(BaseModel):
+    user_id: str
     user_name: str
     refresh_token: str
 
@@ -30,4 +31,14 @@ class RefreshTokenRequest(BaseModel):
             raise ValueError(
                 "Username must be alphanumeric and can include underscores"
             )
+        return value
+
+    @field_validator("user_id")
+    def validate_user_id(cls, value: str) -> str:
+        if not value:
+            raise ValueError("User ID is required")
+        if len(value) < 3:
+            raise ValueError("User ID must be at least 3 characters long")
+        if len(value) > 100:
+            raise ValueError("User ID must be no more than 100 characters long")
         return value

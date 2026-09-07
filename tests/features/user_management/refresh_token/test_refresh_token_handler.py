@@ -33,7 +33,9 @@ async def test_when_user_not_found_should_return_unsuccessful():
         user_repository, refresh_token_repository, password_hasher, token_generator
     )
     response = await handler.handle(
-        RefreshTokenRequest(user_name="testuser", refresh_token="some-token")
+        RefreshTokenRequest(
+            user_id="user_id", user_name="testuser", refresh_token="some-token"
+        )
     )
 
     assert not response.is_successful
@@ -67,7 +69,9 @@ async def test_when_no_active_token_should_return_unsuccessful():
         user_repository, refresh_token_repository, password_hasher, token_generator
     )
     response = await handler.handle(
-        RefreshTokenRequest(user_name="testuser", refresh_token="some-token")
+        RefreshTokenRequest(
+            user_id="user_id", user_name="testuser", refresh_token="some-token"
+        )
     )
 
     assert not response.is_successful
@@ -109,7 +113,9 @@ async def test_when_token_is_revoked_should_raise_http_exception():
 
     with pytest.raises(HTTPException, match="Refresh token revoked"):
         await handler.handle(
-            RefreshTokenRequest(user_name="testuser", refresh_token="some-token")
+            RefreshTokenRequest(
+                user_id="user_id", user_name="testuser", refresh_token="some-token"
+            )
         )
 
 
@@ -148,7 +154,9 @@ async def test_when_token_is_expired_should_revoke_and_return_unsuccessful():
         return_value=2000.0,
     ):
         response = await handler.handle(
-            RefreshTokenRequest(user_name="testuser", refresh_token="some-token")
+            RefreshTokenRequest(
+                user_id="user_id", user_name="testuser", refresh_token="some-token"
+            )
         )
 
     assert not response.is_successful
@@ -196,7 +204,9 @@ async def test_when_token_is_invalid_should_return_unsuccessful():
         return_value=100.0,
     ):
         response = await handler.handle(
-            RefreshTokenRequest(user_name="testuser", refresh_token="wrong-token")
+            RefreshTokenRequest(
+                user_id="user_id", user_name="testuser", refresh_token="wrong-token"
+            )
         )
 
     assert not response.is_successful
@@ -255,7 +265,9 @@ async def test_when_everything_is_valid_should_return_new_tokens():
         return_value=100.0,
     ):
         response = await handler.handle(
-            RefreshTokenRequest(user_name="testuser", refresh_token="valid-token")
+            RefreshTokenRequest(
+                user_id="user_id", user_name="testuser", refresh_token="valid-token"
+            )
         )
 
     assert response.is_successful

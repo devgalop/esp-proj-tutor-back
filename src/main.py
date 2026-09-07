@@ -15,6 +15,7 @@ from src.features.content_management.shared.init import (
 from src.features.assessments.shared.init import router as assessments_router
 from src.features.reports.shared.init import router as reports_router
 from itmentorsoft_persistence import init_db
+from src.infrastructure.cache.valkey_client import ValkeyClient
 from src.infrastructure.database.postgresql.shared.postgresql_seeder import (
     seed_assessments,
     seed_contents,
@@ -30,6 +31,14 @@ async def lifespan(app: FastAPI):
     print("Starting up the application...")
     print("Validating mandatory environment variables...")
     EnvironmentVariablesConstants.validate_mandatory_env_vars()
+
+    print("Initializing the cache service...")
+    cache_client = ValkeyClient()
+    await cache_client.connect()
+
+    app.state.valkey = cache_client
+
+    print("Cache service initialized.")
     print("Initializing the database...")
     await init_db()
     await seed_database(BcryptPasswordHasher())
@@ -44,6 +53,9 @@ async def lifespan(app: FastAPI):
     consumers = sqs_manager_service.start_consumer_services()
     yield
     print("Shutting down the application...")
+    print("Disconnecting the cache service...")
+    await cache_client.disconnect()
+    print("Cache service disconnected.")
     await sqs_manager_service.stop_consumer_services(consumers)
     print("Application shutdown complete.")
 

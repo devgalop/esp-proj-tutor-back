@@ -16,6 +16,7 @@ from src.features.assessments.shared.dependencies import (
 )
 from src.features.user_management.shared.require_roles import require_roles
 from src.features.user_management.shared.token_generator import TokenData
+from src.features.user_management.shared.validate_user import UserIdentityValidator
 
 router = APIRouter()
 
@@ -71,9 +72,12 @@ async def get_assessment_by_topic(
     handler: Annotated[
         GetAssessmentByTopicHandler, Depends(get_get_assessment_by_topic_handler)
     ],
-    _: Annotated[TokenData, Depends(require_roles(["student", "admin"]))],
+    token_data: Annotated[TokenData, Depends(require_roles(["student"]))],
 ) -> GetAssessmentByTopicResponse:
     request = GetAssessmentByTopicRequest(topic_id=topic, student_id=user_id)
+    UserIdentityValidator.is_valid_user(
+        user_logged=token_data, user_id_to_validate=user_id
+    )
     response = await handler.handle(request)
     if not response.is_success:
         raise HTTPException(status_code=400, detail=response.model_dump())

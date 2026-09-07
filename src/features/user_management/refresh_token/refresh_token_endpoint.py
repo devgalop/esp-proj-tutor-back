@@ -98,7 +98,9 @@ async def refresh_session(
         raise HTTPException(status_code=401, detail="Invalid access token")
 
     refresh_token_request = RefreshTokenRequest(
-        user_name=token_info.user_name, refresh_token=refresh_token_cookie
+        user_id=token_info.user_id,
+        user_name=token_info.user_name,
+        refresh_token=refresh_token_cookie,
     )
     response = await handler.handle(refresh_token_request)
     if not response.is_successful:

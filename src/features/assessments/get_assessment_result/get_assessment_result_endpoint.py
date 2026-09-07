@@ -16,6 +16,7 @@ from src.features.assessments.shared.dependencies import (
 )
 from src.features.user_management.shared.require_roles import require_roles
 from src.features.user_management.shared.token_generator import TokenData
+from src.features.user_management.shared.validate_user import UserIdentityValidator
 
 router = APIRouter()
 
@@ -102,7 +103,9 @@ async def get_assessment_result(
     handler: Annotated[
         GetAssessmentResultHandler, Depends(get_get_assessment_result_handler)
     ],
-    _: Annotated[TokenData, Depends(require_roles(["admin", "teacher", "student"]))],
+    token_data: Annotated[
+        TokenData, Depends(require_roles(["admin", "teacher", "student"]))
+    ],
 ) -> GetAssessmentResultResponse:
     """
     Retrieve the result of a specific assessment for a user.
@@ -111,6 +114,7 @@ async def get_assessment_result(
         user_id (str): The ID of the user.
         assessment_id (str): The ID of the assessment.
         handler (GetAssessmentResultHandler): The handler to process the request.
+        token_data (TokenData): The token data of the logged-in user.
 
     Returns:
         GetAssessmentResultResponse: The response containing the assessment result or an error message.
@@ -118,6 +122,11 @@ async def get_assessment_result(
     try:
         request = GetAssessmentResultRequest(
             user_id=user_id, assessment_id=assessment_id
+        )
+        UserIdentityValidator.is_valid_user(
+            user_logged=token_data,
+            user_id_to_validate=user_id,
+            blank_list_roles=["admin", "teacher"],
         )
         response = await handler.handle(request)
         if not response.is_success:

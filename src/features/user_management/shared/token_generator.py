@@ -10,11 +10,13 @@ class InvalidTokenError(Exception):
 class TokenRequest:
     """Data class for token generation request.
     Args:
+        user_id (str): The ID of the user for which the token is being generated.
         user_name (str): The username for which the token is being generated.
         role (str): The role of the user (e.g., "student", "teacher").
     """
 
-    def __init__(self, user_name: str, role: str):
+    def __init__(self, user_id: str, user_name: str, role: str):
+        self.user_id = user_id
         self.user_name = user_name
         self.role = role
 
@@ -34,11 +36,13 @@ class TokenResponse:
 class TokenData:
     """Data class for token data extracted from the token.
     Args:
+        user_id (str): The ID of the user extracted from the token.
         user_name (str): The username extracted from the token.
         role (str): The role of the user extracted from the token.
     """
 
-    def __init__(self, user_name: str, role: str):
+    def __init__(self, user_id: str, user_name: str, role: str):
+        self.user_id = user_id
         self.user_name = user_name
         self.role = role
 

@@ -13,13 +13,19 @@ from src.features.user_management.shared.token_generator import (
 
 
 class TokenPayload:
-    def __init__(self, user_name: str, role: str, exp: datetime):
+    def __init__(self, user_id: str, user_name: str, role: str, exp: datetime):
+        self.user_id = user_id
         self.user_name = user_name
         self.role = role
         self.exp = exp
 
     def to_dict(self) -> dict[str, str | datetime]:
-        return {"user_name": self.user_name, "role": self.role, "exp": self.exp}
+        return {
+            "user_id": self.user_id,
+            "user_name": self.user_name,
+            "role": self.role,
+            "exp": self.exp,
+        }
 
 
 class JWTTokenGenerator(TokenGenerator):
@@ -29,7 +35,10 @@ class JWTTokenGenerator(TokenGenerator):
             seconds=int(EnvironmentVariablesConstants.JWT_EXPIRATION_DELTA_SECONDS)
         )
         token_payload = TokenPayload(
-            user_name=request.user_name, role=request.role, exp=expiration_time
+            user_id=request.user_id,
+            user_name=request.user_name,
+            role=request.role,
+            exp=expiration_time,
         ).to_dict()
         return TokenResponse(
             token=jwt.encode(
@@ -48,7 +57,11 @@ class JWTTokenGenerator(TokenGenerator):
                 algorithms=EnvironmentVariablesConstants.JWT_ALGORITHM,
                 options={"verify_exp": verify_exp},
             )  # pyright: ignore[reportUnknownMemberType]
-            return TokenData(user_name=payload["user_name"], role=payload["role"])
+            return TokenData(
+                user_id=payload["user_id"],
+                user_name=payload["user_name"],
+                role=payload["role"],
+            )
         except jwt.PyJWTError as e:
             raise InvalidTokenError(str(e)) from e
 

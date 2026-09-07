@@ -1,3 +1,4 @@
+from fastapi import Request
 from fastapi.params import Depends
 from typing import Annotated
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -100,6 +101,7 @@ from itmentorsoft_persistence.repositories import QuestionRepository
 from src.features.assessments.update_question_status.update_question_status_handler import (
     UpdateQuestionStatusHandler,
 )
+from src.features.shared.cache_service import CacheService
 from src.features.shared.notification_service import NotificationService
 from src.features.shared.publisher_service import PublisherService
 from src.features.shared.template_loader import TemplateLoader
@@ -112,6 +114,7 @@ from src.infrastructure.broker.aws.services.aws_sqs_manager import SqsManagerSer
 from src.infrastructure.broker.aws.services.aws_sqs_publisher_service import (
     EvaluateAssessmentPublishAdapter,
 )
+from src.infrastructure.cache.valkey_cache_service import ValkeyCacheService
 from src.infrastructure.classifier.opencode_classifier_service import (
     OpenCodeClassificationService,
 )
@@ -161,13 +164,19 @@ def get_assessment_repository(
     return PostgresAssessmentRepository(session_factory, PostgresAssessmentMapper)
 
 
+def get_cache_service(request: Request) -> CacheService:
+    return ValkeyCacheService(request.app.state.valkey)
+
+
 def get_questions_cache_repository(
     question_assessment_repository: Annotated[
         QuestionAssessmentRepository, Depends(get_question_assessment_repository)
     ],
+    cache_service: Annotated[CacheService, Depends(get_cache_service)],
 ) -> QuestionAssessmentRepository:
     return QuestionsCacheRepository(
-        assessment_repository=question_assessment_repository
+        assessment_repository=question_assessment_repository,
+        cache_service=cache_service,
     )
 
 
