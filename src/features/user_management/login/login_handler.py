@@ -1,3 +1,8 @@
+from src.features.shared.notification_service import (
+    NotificationConfigBuilder,
+    NotificationService,
+)
+from src.features.shared.template_loader import TemplateLoader
 from src.features.user_management.login.login_request import LoginRequest
 from src.features.user_management.login.login_response import LoginResponse
 from src.features.user_management.shared.otp_generator import OTPGenerator
@@ -13,16 +18,22 @@ class LoginHandler:
     MAX_USER_ACCESS_TRY_LIMIT = int(
         EnvironmentVariablesConstants.USER_ACCESS_TRY_LIMIT
     ) + int(EnvironmentVariablesConstants.USER_ACCESS_LOCK_LIMIT)
+    EMAIL_OTP_SUBJECT = "Código de verificación"
+    NOTIFICATION_TEMPLATE = "otp"
 
     def __init__(
         self,
         user_repository: UserRepository,
         password_hasher: PasswordHasher,
         otp_generator: OTPGenerator,
+        notification_service: NotificationService,
+        template_loader: TemplateLoader,
     ):
         self.user_repository = user_repository
         self.password_hasher = password_hasher
         self.otp_generator = otp_generator
+        self.notification_service = notification_service
+        self.template_loader = template_loader
 
     async def handle(self, request: LoginRequest) -> LoginResponse:
         """ "Handle the login request.
@@ -70,9 +81,10 @@ class LoginHandler:
             )  # nosec
 
         otp = self.otp_generator.generate_otp()
-        otp_expiration_time = int(time()) + int(
+        expiration_limit = int(
             EnvironmentVariablesConstants.USER_OTP_EXPIRED_TIME_SECONDS
         )
+        otp_expiration_time = int(time()) + expiration_limit
         await self.user_repository.save_user_otp(
             UserOTPRequest(
                 user_id=user.id, otp=otp, expiration_time=otp_expiration_time
@@ -80,6 +92,25 @@ class LoginHandler:
         )
 
         await self.user_repository.reset_login_try_counter(user.id)
+
+        notification_config_builder = NotificationConfigBuilder(
+            request.email, self.EMAIL_OTP_SUBJECT
+        )
+
+        try:
+            html_content = self.template_loader.load(self.NOTIFICATION_TEMPLATE)
+            html_content = (
+                html_content.replace("%USER%", user.username)
+                .replace("%OTP_CODE%", otp)
+                .replace("%OTP_EXPIRATION_MINUTES%", str(expiration_limit // 60))
+            )
+            notification_config_builder.set_template(html_content)
+            notification_config = notification_config_builder.build()
+
+            _ = await self.notification_service.send_notification(notification_config)
+        except FileNotFoundError:
+            print("Email template not found. Please contact support.")
+
         return LoginResponse(is_successful=True, user_id=user.id)
 
     def _is_blocked(self, user_tries: UserAccessTries | None = None) -> bool:

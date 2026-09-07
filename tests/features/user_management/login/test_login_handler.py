@@ -16,6 +16,8 @@ async def test_when_credentials_are_valid_should_return_successful_with_user_id(
     user_repository = AsyncMock()
     password_hasher = Mock()
     otp_generator = Mock()
+    notification_service = AsyncMock()
+    template_loader = Mock()
 
     user_repository.get_user_by_email = AsyncMock(
         return_value=CompleteUserResponse(
@@ -33,7 +35,13 @@ async def test_when_credentials_are_valid_should_return_successful_with_user_id(
     user_repository.save_user_otp = AsyncMock()
     user_repository.reset_login_try_counter = AsyncMock()
 
-    handler = LoginHandler(user_repository, password_hasher, otp_generator)
+    handler = LoginHandler(
+        user_repository,
+        password_hasher,
+        otp_generator,
+        notification_service,
+        template_loader,
+    )
     sample_pass = "Password123!"
     response = await handler.handle(
         LoginRequest(email="test@example.com", password=sample_pass)
@@ -55,10 +63,18 @@ async def test_when_email_does_not_exist_should_return_unsuccessful():
     user_repository = AsyncMock()
     password_hasher = Mock()
     otp_generator = Mock()
+    notification_service = AsyncMock()
+    template_loader = Mock()
 
     user_repository.get_user_by_email = AsyncMock(return_value=None)
 
-    handler = LoginHandler(user_repository, password_hasher, otp_generator)
+    handler = LoginHandler(
+        user_repository,
+        password_hasher,
+        otp_generator,
+        notification_service,
+        template_loader,
+    )
     response = await handler.handle(
         LoginRequest(email="invalid@example.com", password="Password123!")
     )
@@ -75,6 +91,8 @@ async def test_when_password_is_incorrect_should_increment_tries_and_return_unsu
     user_repository = AsyncMock()
     password_hasher = Mock()
     otp_generator = Mock()
+    notification_service = AsyncMock()
+    template_loader = Mock()
 
     user_repository.get_user_by_email = AsyncMock(
         return_value=CompleteUserResponse(
@@ -90,7 +108,13 @@ async def test_when_password_is_incorrect_should_increment_tries_and_return_unsu
     password_hasher.verify_password = Mock(return_value=False)
     user_repository.increment_login_try_counter = AsyncMock()
 
-    handler = LoginHandler(user_repository, password_hasher, otp_generator)
+    handler = LoginHandler(
+        user_repository,
+        password_hasher,
+        otp_generator,
+        notification_service,
+        template_loader,
+    )
     response = await handler.handle(
         LoginRequest(email="test@example.com", password="IncorrectPassword12!")
     )
@@ -110,6 +134,8 @@ async def test_when_user_is_temporarily_blocked_should_return_blocked_response()
     user_repository = AsyncMock()
     password_hasher = Mock()
     otp_generator = Mock()
+    notification_service = AsyncMock()
+    template_loader = Mock()
 
     user_repository.get_user_by_email = AsyncMock(
         return_value=CompleteUserResponse(
@@ -131,7 +157,13 @@ async def test_when_user_is_temporarily_blocked_should_return_blocked_response()
         )
     )
 
-    handler = LoginHandler(user_repository, password_hasher, otp_generator)
+    handler = LoginHandler(
+        user_repository,
+        password_hasher,
+        otp_generator,
+        notification_service,
+        template_loader,
+    )
 
     with patch(
         "src.features.user_management.login.login_handler.time",
@@ -152,6 +184,8 @@ async def test_when_user_is_definitively_blocked_should_return_blocked_response(
     user_repository = AsyncMock()
     password_hasher = Mock()
     otp_generator = Mock()
+    notification_service = AsyncMock()
+    template_loader = Mock()
 
     user_repository.get_user_by_email = AsyncMock(
         return_value=CompleteUserResponse(
@@ -173,7 +207,13 @@ async def test_when_user_is_definitively_blocked_should_return_blocked_response(
         )
     )
 
-    handler = LoginHandler(user_repository, password_hasher, otp_generator)
+    handler = LoginHandler(
+        user_repository,
+        password_hasher,
+        otp_generator,
+        notification_service,
+        template_loader,
+    )
     response = await handler.handle(
         LoginRequest(email="test@example.com", password="Password123!")
     )

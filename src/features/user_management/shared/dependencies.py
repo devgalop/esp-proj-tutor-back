@@ -146,26 +146,36 @@ def get_confirm_otp_handler(
     )
 
 
-def get_login_handler(
-    user_repository: Annotated[UserRepository, Depends(get_user_repository)],
-    password_hasher: Annotated[PasswordHasher, Depends(get_password_hasher)],
-    otp_generator: Annotated[OTPGenerator, Depends(get_otp_generator)],
-) -> LoginHandler:
-    return LoginHandler(user_repository, password_hasher, otp_generator)
-
-
-def get_get_user_handler(
-    user_repository: Annotated[UserRepository, Depends(get_user_repository)],
-) -> GetUserHandler:
-    return GetUserHandler(user_repository)
-
-
 def get_notification_service() -> NotificationService:
     return BrevoNotificationService()
 
 
 def get_template_loader() -> TemplateLoader:
     return TemplateLoader()
+
+
+def get_login_handler(
+    user_repository: Annotated[UserRepository, Depends(get_user_repository)],
+    password_hasher: Annotated[PasswordHasher, Depends(get_password_hasher)],
+    otp_generator: Annotated[OTPGenerator, Depends(get_otp_generator)],
+    notification_service: Annotated[
+        NotificationService, Depends(get_notification_service)
+    ],
+    template_loader: Annotated[TemplateLoader, Depends(get_template_loader)],
+) -> LoginHandler:
+    return LoginHandler(
+        user_repository,
+        password_hasher,
+        otp_generator,
+        notification_service,
+        template_loader,
+    )
+
+
+def get_get_user_handler(
+    user_repository: Annotated[UserRepository, Depends(get_user_repository)],
+) -> GetUserHandler:
+    return GetUserHandler(user_repository)
 
 
 def get_recovery_password_handler(
